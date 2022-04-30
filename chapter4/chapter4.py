@@ -31,17 +31,20 @@ class viz:
     lw, mz  = 2.5, 6.5
 
     @staticmethod
-    def get_style(): sns.set_style("ticks", {'axes.grid': False})
-
+    def get_style(): 
+        sns.set_style("ticks", {'axes.grid': False})
+        
+viz.get_style()
 #-------------------------------------
 #            Section 4.5 
 #-------------------------------------
 
 # closed-form solution of var and bias 
+eps_ = 1e-12 # avoid divde by 0 
 Var_ML   = lambda J, J_s: 1 / J  
 Bias2_ML = lambda J, J_s, mu, s: 0 
-Var_PM   = lambda J, J_s: J / (J+J_s)**2
-Bias2_PM = lambda J, J_s, mu, s: (J_s**2*(mu - s)**2) / (J+J_s)**2
+Var_PM   = lambda J, J_s: J / ((J+J_s)**2+eps_)
+Bias2_PM = lambda J, J_s, mu, s: (J_s**2*(mu - s)**2) / ((J+J_s)**2+eps_)
 
 def Fig4_1(param_Prior=(0, 8), seed=1234):
 
@@ -51,8 +54,8 @@ def Fig4_1(param_Prior=(0, 8), seed=1234):
     # get distribution parameters
     kws       = ['ML', 'PM'] 
     mu, sig_s = param_Prior
-    J_s       = 1/sig_s**2
-    sig_lst   = np.linspace(0, 16, 30)
+    J_s       = 1/(sig_s**2+eps_)
+    sig_lst   = np.linspace(.01, 16, 30)
     s_lst     = np.linspace(-30, 30, 50)
     f_S       = norm(mu, sig_s).pdf(s_lst)
     p_S       = f_S / f_S.sum()
@@ -74,13 +77,13 @@ def Fig4_1(param_Prior=(0, 8), seed=1234):
     ax = axs[0]
     for i in range(len(kws)):
         sns.lineplot(x=sig_lst, y=var_data[i, :], color=viz.Greens[i], ax=ax)
-    ax.set_xlabel('sigma')
+    ax.set_xlabel('Sigma')
     ax.set_ylabel('Var')
     ax.legend(kws)
     ax = axs[1]
     for i in range(len(kws)):
         sns.lineplot(x=sig_lst, y=mse_data[i, :], color=viz.Greens[i], ax=ax)
-    ax.set_xlabel('sigma')
+    ax.set_xlabel('Sigma')
     ax.set_ylabel('MSE')
     fig.tight_layout()
     plt.savefig(f'{path}/Fig_4_1.png', dpi=viz.dpi)
@@ -192,6 +195,6 @@ def Fig4_3(param_Prior=(0, 8), param_Like=4,
 if __name__ == '__main__':
 
     Fig4_1()
-    #Fig4_3(param_Like=(4), n_samples=1000000)
+    Fig4_3(param_Like=(4), n_samples=1000000)
         
 
