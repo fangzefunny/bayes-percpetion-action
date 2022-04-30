@@ -37,10 +37,62 @@ class viz:
 #            Section 4.5 
 #-------------------------------------
 
-def Fig4_3(s_check=10, param_Prior=(0, 8), param_Like=4, 
-                n_samples=100000, n_bins=60, seed=1234):
+# closed-form solution of var and bias 
+Var_ML   = lambda J, J_s: 1 / J  
+Bias2_ML = lambda J, J_s, mu, s: 0 
+Var_PM   = lambda J, J_s: J / (J+J_s)**2
+Bias2_PM = lambda J, J_s, mu, s: (J_s**2*(mu - s)**2) / (J+J_s)**2
 
-    # fix random seed
+def Fig4_1(param_Prior=(0, 8), seed=1234):
+
+    # instantiate a random generator
+    rng = np.random.RandomState(seed)
+
+    # get distribution parameters
+    kws       = ['ML', 'PM'] 
+    mu, sig_s = param_Prior
+    J_s       = 1/sig_s**2
+    sig_lst   = np.linspace(0, 16, 30)
+    s_lst     = np.linspace(-30, 30, 50)
+    f_S       = norm(mu, sig_s).pdf(s_lst)
+    p_S       = f_S / f_S.sum()
+    
+    # get data
+    var_data   = np.zeros([2, len(sig_lst)]) + np.nan 
+    bias2_data = np.zeros([2, len(sig_lst)]) + np.nan 
+    for i, sig in enumerate(sig_lst):
+        j = 1/sig**2
+        for k, kw in enumerate(kws):
+            var_data[k, i] = eval(f'Var_{kw}')(j, J_s)
+            bias2 = np.array([eval(f'Bias2_{kw}')(j, J_s, mu, s) for s in s_lst])
+            bias2_data[k, i] = (bias2*p_S).sum()
+    mse_data = bias2_data + var_data
+        
+    # plotting 
+    nr, nc = 1, 2
+    fig, axs = plt.subplots(nr, nc, figsize=(3*nc, 2.9*nr))
+    ax = axs[0]
+    for i in range(len(kws)):
+        sns.lineplot(x=sig_lst, y=var_data[i, :], color=viz.Greens[i], ax=ax)
+    ax.set_xlabel('sigma')
+    ax.set_ylabel('Var')
+    ax.legend(kws)
+    ax = axs[1]
+    for i in range(len(kws)):
+        sns.lineplot(x=sig_lst, y=mse_data[i, :], color=viz.Greens[i], ax=ax)
+    ax.set_xlabel('sigma')
+    ax.set_ylabel('MSE')
+    fig.tight_layout()
+    plt.savefig(f'{path}/Fig_4_1.png', dpi=viz.dpi)
+    
+#-------------------------------------
+#           Section 4.5.1 
+#-------------------------------------
+
+def Fig4_3(param_Prior=(0, 8), param_Like=4, 
+            n_samples=100000, n_bins=60, seed=1234):
+
+    # instantiate a random generator
     rng = np.random.RandomState(seed)
 
     # get distribution parameters 
@@ -139,6 +191,7 @@ def Fig4_3(s_check=10, param_Prior=(0, 8), param_Like=4,
 
 if __name__ == '__main__':
 
-    Fig4_3(param_Like=(4), n_samples=1000000)
+    Fig4_1()
+    #Fig4_3(param_Like=(4), n_samples=1000000)
         
 
