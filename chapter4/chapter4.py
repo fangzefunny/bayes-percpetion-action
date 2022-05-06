@@ -32,6 +32,7 @@ class viz:
 
     @staticmethod
     def get_style(): 
+        sns.set_context('talk')
         sns.set_style("ticks", {'axes.grid': False})
         
 viz.get_style()
@@ -72,19 +73,30 @@ def Fig4_1(param_Prior=(0, 8), seed=1234):
     mse_data = bias2_data + var_data
         
     # plotting 
-    nr, nc = 1, 2
-    fig, axs = plt.subplots(nr, nc, figsize=(3*nc, 2.9*nr))
-    ax = axs[0]
+    nr, nc = 2, 2
+    fig, axs = plt.subplots(nr, nc, figsize=(4*nc, 4*nr), sharex=True, sharey=True)
+    ax = axs[0, 0]
     for i in range(len(kws)):
-        sns.lineplot(x=sig_lst, y=var_data[i, :], color=viz.Greens[i], ax=ax)
+        sns.lineplot(x=sig_lst, y=mse_data[i, :], color=viz.Greens[i],
+        lw=4, ax=ax)
     ax.set_xlabel('Sigma')
-    ax.set_ylabel('Var')
+    ax.set_title('MSE')
     ax.legend(kws)
-    ax = axs[1]
+    ax = axs[0, 1]
+    ax.set_axis_off()
+    ax = axs[1, 0]
     for i in range(len(kws)):
-        sns.lineplot(x=sig_lst, y=mse_data[i, :], color=viz.Greens[i], ax=ax)
+        sns.lineplot(x=sig_lst, y=mse_data[i, :]-var_data[i, :], color=viz.Greens[i],
+        lw=4, ax=ax)
     ax.set_xlabel('Sigma')
-    ax.set_ylabel('MSE')
+    ax.set_title('Bias')
+    fig.tight_layout()
+    ax = axs[1, 1]
+    for i in range(len(kws)):
+        sns.lineplot(x=sig_lst, y=var_data[i, :], color=viz.Greens[i],
+        lw=4, ax=ax)
+    ax.set_xlabel('Sigma')
+    ax.set_title('Var')
     fig.tight_layout()
     plt.savefig(f'{path}/Fig_4_1.png', dpi=viz.dpi)
     
@@ -140,14 +152,15 @@ def Fig4_3(param_Prior=(0, 8), param_Like=4,
 
         # save data 
         data.to_csv(fname, index=False) 
-
-    # replicat figure 4.3 
-    nr, nc = 2, 4
-    fig, axs = plt.subplots(nr, nc, figsize=(3*nc, 2.9*nr))
+    
+    # infer p(shat|s=10)
+    nr, nc = 4, 2
+    fig, axs = plt.subplots(nr, nc, sharey='row',
+                figsize=(3.2*nc, 3.*nr))
     kws   = ['ML', 'PM']
     svals = [1, 10]
     for i, kw in enumerate(kws):
-        ax = axs[i, 0]
+        ax = axs[0, i]
         sns.scatterplot(x='s', y=f'shat_{kw}', data=data.loc[:1000, :], 
                 color=viz.Greens[i], s=5, ax=ax)
         sns.lineplot(x=bins , y=bins ,
@@ -156,10 +169,10 @@ def Fig4_3(param_Prior=(0, 8), param_Like=4,
         ax.axvline(x=svals[1], ls='--', color=[.5]*3)
         ax.set_xlim([-30, 30])
         ax.set_ylim([-30, 30])
-        ax.set_ylabel(f'{kw} est.')
+        ax.set_ylabel(f'Est.')
         ax.set_xlabel('s')
-        # infer p(shat|s=10)
-        ax = axs[i, 1]
+
+        ax = axs[1, i]
         sns.histplot(x=f'{kw}_digit', data=data.query(
             f's_digit=={np.digitize(svals[0], bins=bins)}'),
             color=[.7]*3, edgecolor=[1,1,1], binwidth=1, 
@@ -167,10 +180,11 @@ def Fig4_3(param_Prior=(0, 8), param_Like=4,
         ax.axvline(x=np.digitize(svals[0], bins=bins), ls='--', color=viz.Greens[i])
         ax.set_xlabel(f's={svals[0]}, common case')
         ax.set_ylabel(f'p(shat|s={svals[0]})')
-        ax.set_xticks([10, 20, 30, 40, 50])
-        ax.set_xticklabels([-20, -10, 0, 10, 20])
+        ax.set_xticks([0, 10, 20, 30, 40, 50, 60])
+        ax.set_xticklabels([30, -20, -10, 0, 10, 20, 30])
+
         # infer p(s|shat=10)
-        ax = axs[i, 2]
+        ax = axs[2, i]
         sns.histplot(x=f'{kw}_digit', data=data.query(
             f's_digit=={np.digitize(svals[1], bins=bins)}'), 
             color=[.5]*3, edgecolor=[1,1,1], binwidth=1, 
@@ -178,17 +192,17 @@ def Fig4_3(param_Prior=(0, 8), param_Like=4,
         ax.axvline(x=np.digitize(svals[1], bins=bins), ls='--', color=viz.Greens[i])
         ax.set_xlabel(f's={svals[1]}, rare case')
         ax.set_ylabel(f'p(shat|s={svals[1]})')
-        ax.set_xticks([10, 20, 30, 40, 50])
-        ax.set_xticklabels([-20, -10, 0, 10, 20])
+        ax.set_xticks([0, 10, 20, 30, 40, 50, 60])
+        ax.set_xticklabels([30, -20, -10, 0, 10, 20, 30])
+
         # show prediction error distribution
-        ax = axs[i, 3]
+        ax = axs[3, i]
         sns.histplot(x=f's-{kw}_digit', data=data, 
             color=viz.Greens[i], edgecolor=[1,1,1], binwidth=1,
             stat='probability', ax=ax)
-        ax.set_xticks([10, 20, 30, 40, 50])
-        ax.set_xticklabels([-20, -10, 0, 10, 20])
+        ax.set_xticks([0, 10, 20, 30, 40, 50, 60])
+        ax.set_xticklabels([30, -20, -10, 0, 10, 20, 30])
         ax.set_xlabel('s - shat')
-        ax.set_ylim([0, .12])
     fig.tight_layout()
     plt.savefig(f'{path}/Fig_4_3_sig={param_Like}.png', dpi=viz.dpi)
 
