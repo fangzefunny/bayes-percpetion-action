@@ -9,6 +9,7 @@ from concurrent.futures  import ThreadPoolExecutor
 import matplotlib.pyplot as plt 
 import seaborn as sns 
 
+
 # find the current path
 path = os.path.dirname(os.path.abspath(__file__))
 
@@ -80,7 +81,7 @@ def Fig4_1(param_Prior=(0, 8), seed=1234):
         sns.lineplot(x=sig_lst, y=mse_data[i, :], color=viz.Greens[i],
         lw=4, ax=ax)
     ax.set_xlabel('Sigma')
-    ax.set_title('MSE')
+    ax.set_title(r'Overall MSE')
     ax.legend(kws)
     ax = axs[0, 1]
     ax.set_axis_off()
@@ -89,7 +90,7 @@ def Fig4_1(param_Prior=(0, 8), seed=1234):
         sns.lineplot(x=sig_lst, y=mse_data[i, :]-var_data[i, :], color=viz.Greens[i],
         lw=4, ax=ax)
     ax.set_xlabel('Sigma')
-    ax.set_title('Bias')
+    ax.set_title('Overall Bias')
     fig.tight_layout()
     ax = axs[1, 1]
     for i in range(len(kws)):
